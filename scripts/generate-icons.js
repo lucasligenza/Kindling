@@ -1,191 +1,173 @@
 // scripts/generate-icons.js
-// Generates simple Kindle-inspired extension icons using Canvas API.
-// Run with: node scripts/generate-icons.js (requires 'canvas' npm package)
-// If canvas installation fails, falls back to PNG generation using node-png
+// Generates fire/kindling-themed extension icons using Canvas API.
+// Run with: node scripts/generate-icons.js
 
+const { createCanvas } = require("canvas");
 const fs = require("fs");
 const path = require("path");
 
 function generateIcon(size) {
-  try {
-    // Try using the canvas package
-    const { createCanvas } = require("canvas");
-    const canvas = createCanvas(size, size);
-    const ctx = canvas.getContext("2d");
-    const scale = size / 128;
+  const canvas = createCanvas(size, size);
+  const ctx = canvas.getContext("2d");
+  const s = size / 128; // scale factor
 
-    // Background — rounded rectangle (dark charcoal like a Kindle device)
-    const radius = 16 * scale;
-    const margin = 8 * scale;
-    ctx.fillStyle = "#333333";
-    ctx.beginPath();
-    ctx.moveTo(margin + radius, margin);
-    ctx.lineTo(size - margin - radius, margin);
-    ctx.arcTo(size - margin, margin, size - margin, margin + radius, radius);
-    ctx.lineTo(size - margin, size - margin - radius);
-    ctx.arcTo(
-      size - margin,
-      size - margin,
-      size - margin - radius,
-      size - margin,
-      radius
-    );
-    ctx.lineTo(margin + radius, size - margin);
-    ctx.arcTo(margin, size - margin, margin, size - margin - radius, radius);
-    ctx.lineTo(margin, margin + radius);
-    ctx.arcTo(margin, margin, margin + radius, margin, radius);
-    ctx.closePath();
-    ctx.fill();
+  // Transparent background
+  ctx.clearRect(0, 0, size, size);
 
-    // Screen area — cream rectangle (like Kindle screen)
-    const screenMargin = 20 * scale;
-    const screenBottom = size - 32 * scale;
-    ctx.fillStyle = "#F5F1E8";
-    ctx.fillRect(
-      screenMargin,
-      screenMargin,
-      size - screenMargin * 2,
-      screenBottom - screenMargin
-    );
+  // Draw kindling sticks (two crossed sticks at the base)
+  ctx.strokeStyle = "#5C3A1E";
+  ctx.lineCap = "round";
+  ctx.lineWidth = Math.max(3 * s, 1);
 
-    // Text lines (representing content)
-    ctx.fillStyle = "#2A2A2A";
-    const lineHeight = 6 * scale;
-    const lineGap = 4 * scale;
-    const textLeft = 28 * scale;
-    const textRight = size - 28 * scale;
-    let y = 30 * scale;
+  // Left stick
+  ctx.beginPath();
+  ctx.moveTo(30 * s, 110 * s);
+  ctx.lineTo(64 * s, 55 * s);
+  ctx.stroke();
 
-    // Title line (wider)
-    ctx.fillRect(textLeft, y, (textRight - textLeft) * 0.7, lineHeight);
-    y += lineHeight + lineGap * 2;
+  // Right stick
+  ctx.beginPath();
+  ctx.moveTo(98 * s, 110 * s);
+  ctx.lineTo(64 * s, 55 * s);
+  ctx.stroke();
 
-    // Body lines
-    for (let i = 0; i < 5; i++) {
-      const width =
-        i === 4 ? (textRight - textLeft) * 0.5 : textRight - textLeft;
-      ctx.fillRect(textLeft, y, width, lineHeight * 0.7);
-      y += lineHeight * 0.7 + lineGap;
-    }
+  // Cross stick
+  ctx.lineWidth = Math.max(2.5 * s, 1);
+  ctx.beginPath();
+  ctx.moveTo(38 * s, 90 * s);
+  ctx.lineTo(90 * s, 80 * s);
+  ctx.stroke();
 
-    return canvas.toBuffer("image/png");
-  } catch (err) {
-    // Fallback: Generate a simple valid PNG without canvas
-    console.log(
-      `Canvas not available, using PNG fallback for icon${size}.png`
-    );
-    return generateSimplePNG(size);
-  }
-}
+  // Small extra stick
+  ctx.lineWidth = Math.max(2 * s, 1);
+  ctx.beginPath();
+  ctx.moveTo(50 * s, 100 * s);
+  ctx.lineTo(78 * s, 70 * s);
+  ctx.stroke();
 
-function generateSimplePNG(size) {
-  // Create a minimal valid PNG with a Kindle-inspired design
-  // Using raw PNG chunk construction
-  const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  // Draw flame — built from layered bezier curves
 
-  // IHDR chunk (13 bytes of data)
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0); // width
-  ihdr.writeUInt32BE(size, 4); // height
-  ihdr.writeUInt8(8, 8); // bit depth
-  ihdr.writeUInt8(2, 9); // color type (2 = RGB)
-  ihdr.writeUInt8(0, 10); // compression method
-  ihdr.writeUInt8(0, 11); // filter method
-  ihdr.writeUInt8(0, 12); // interlace method
+  // Outer flame (warm orange-red)
+  const flameGradient = ctx.createLinearGradient(64 * s, 10 * s, 64 * s, 80 * s);
+  flameGradient.addColorStop(0, "#FF4500");
+  flameGradient.addColorStop(0.4, "#FF6B00");
+  flameGradient.addColorStop(1, "#FF8C00");
 
-  const ihdrChunk = createChunk("IHDR", ihdr);
+  ctx.fillStyle = flameGradient;
+  ctx.beginPath();
+  ctx.moveTo(64 * s, 8 * s); // tip
+  ctx.bezierCurveTo(
+    52 * s, 25 * s,
+    32 * s, 45 * s,
+    36 * s, 65 * s
+  );
+  ctx.bezierCurveTo(
+    38 * s, 80 * s,
+    48 * s, 88 * s,
+    64 * s, 88 * s
+  );
+  ctx.bezierCurveTo(
+    80 * s, 88 * s,
+    90 * s, 80 * s,
+    92 * s, 65 * s
+  );
+  ctx.bezierCurveTo(
+    96 * s, 45 * s,
+    76 * s, 25 * s,
+    64 * s, 8 * s
+  );
+  ctx.closePath();
+  ctx.fill();
 
-  // IDAT chunk - create simple pixel data
-  const zlib = require("zlib");
-  const pixelData = Buffer.alloc(size * size * 3 + size); // RGB + 1 filter byte per scanline
-  let offset = 0;
+  // Middle flame (bright orange-yellow)
+  const midGradient = ctx.createLinearGradient(64 * s, 20 * s, 64 * s, 80 * s);
+  midGradient.addColorStop(0, "#FFA500");
+  midGradient.addColorStop(0.5, "#FFB733");
+  midGradient.addColorStop(1, "#FFCC00");
 
-  for (let y = 0; y < size; y++) {
-    pixelData[offset++] = 0; // filter type for this scanline
+  ctx.fillStyle = midGradient;
+  ctx.beginPath();
+  ctx.moveTo(64 * s, 22 * s);
+  ctx.bezierCurveTo(
+    56 * s, 35 * s,
+    42 * s, 50 * s,
+    45 * s, 65 * s
+  );
+  ctx.bezierCurveTo(
+    47 * s, 78 * s,
+    54 * s, 84 * s,
+    64 * s, 84 * s
+  );
+  ctx.bezierCurveTo(
+    74 * s, 84 * s,
+    81 * s, 78 * s,
+    83 * s, 65 * s
+  );
+  ctx.bezierCurveTo(
+    86 * s, 50 * s,
+    72 * s, 35 * s,
+    64 * s, 22 * s
+  );
+  ctx.closePath();
+  ctx.fill();
 
-    for (let x = 0; x < size; x++) {
-      // Create a simple Kindle-inspired gradient
-      const margin = Math.floor(size * 0.1);
-      const screenMargin = Math.floor(size * 0.15);
+  // Inner flame (bright yellow-white core)
+  const innerGradient = ctx.createLinearGradient(64 * s, 40 * s, 64 * s, 80 * s);
+  innerGradient.addColorStop(0, "#FFE066");
+  innerGradient.addColorStop(0.6, "#FFEB99");
+  innerGradient.addColorStop(1, "#FFF5CC");
 
-      if (
-        x < margin ||
-        x >= size - margin ||
-        y < margin ||
-        y >= size - margin
-      ) {
-        // Background (dark charcoal)
-        pixelData[offset++] = 51; // R
-        pixelData[offset++] = 51; // G
-        pixelData[offset++] = 51; // B
-      } else if (
-        x < screenMargin ||
-        x >= size - screenMargin ||
-        y < screenMargin ||
-        y >= size - screenMargin * 0.8
-      ) {
-        // Border (darker)
-        pixelData[offset++] = 100; // R
-        pixelData[offset++] = 100; // G
-        pixelData[offset++] = 100; // B
-      } else {
-        // Screen area (cream)
-        pixelData[offset++] = 245; // R
-        pixelData[offset++] = 241; // G
-        pixelData[offset++] = 232; // B
-      }
-    }
-  }
+  ctx.fillStyle = innerGradient;
+  ctx.beginPath();
+  ctx.moveTo(64 * s, 40 * s);
+  ctx.bezierCurveTo(
+    58 * s, 50 * s,
+    52 * s, 60 * s,
+    54 * s, 70 * s
+  );
+  ctx.bezierCurveTo(
+    55 * s, 78 * s,
+    59 * s, 82 * s,
+    64 * s, 82 * s
+  );
+  ctx.bezierCurveTo(
+    69 * s, 82 * s,
+    73 * s, 78 * s,
+    74 * s, 70 * s
+  );
+  ctx.bezierCurveTo(
+    76 * s, 60 * s,
+    70 * s, 50 * s,
+    64 * s, 40 * s
+  );
+  ctx.closePath();
+  ctx.fill();
 
-  const compressedData = zlib.deflateSync(pixelData);
-  const idatChunk = createChunk("IDAT", compressedData);
+  // Small spark/flicker to the right
+  ctx.fillStyle = "#FF6B00";
+  ctx.beginPath();
+  ctx.moveTo(78 * s, 30 * s);
+  ctx.bezierCurveTo(
+    76 * s, 35 * s,
+    72 * s, 42 * s,
+    75 * s, 48 * s
+  );
+  ctx.bezierCurveTo(
+    78 * s, 42 * s,
+    80 * s, 36 * s,
+    78 * s, 30 * s
+  );
+  ctx.closePath();
+  ctx.fill();
 
-  // IEND chunk (empty)
-  const iendChunk = createChunk("IEND", Buffer.alloc(0));
-
-  return Buffer.concat([pngSignature, ihdrChunk, idatChunk, iendChunk]);
-}
-
-function createChunk(type, data) {
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length, 0);
-
-  const typeBuffer = Buffer.from(type, "ascii");
-  const crcData = Buffer.concat([typeBuffer, data]);
-
-  const crc = calculateCRC(crcData);
-  const crcBuffer = Buffer.alloc(4);
-  crcBuffer.writeUInt32BE(crc >>> 0, 0);
-
-  return Buffer.concat([length, typeBuffer, data, crcBuffer]);
-}
-
-function calculateCRC(data) {
-  const crcTable = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    crcTable[n] = c >>> 0;
-  }
-
-  let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) {
-    crc = crcTable[(crc ^ data[i]) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
+  return canvas.toBuffer("image/png");
 }
 
 const iconsDir = path.join(__dirname, "..", "icons");
 if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true });
 
 [16, 48, 128].forEach((size) => {
-  try {
-    const buffer = generateIcon(size);
-    fs.writeFileSync(path.join(iconsDir, `icon${size}.png`), buffer);
-    console.log(`Generated icon${size}.png`);
-  } catch (err) {
-    console.error(`Failed to generate icon${size}.png:`, err.message);
-  }
+  const buffer = generateIcon(size);
+  fs.writeFileSync(path.join(iconsDir, `icon${size}.png`), buffer);
+  console.log(`Generated icon${size}.png`);
 });

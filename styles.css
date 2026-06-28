@@ -122,11 +122,31 @@
 }
 
 .kindling-content img {
-  max-width: 100%;
-  height: auto;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  display: block !important;
+  float: none !important;
+  margin: 1.5em auto !important;
+  filter: grayscale(100%) contrast(1.1) brightness(0.95);
+}
+
+.kindling-content figure {
+  float: none !important;
   display: block;
   margin: 1.5em auto;
-  filter: grayscale(100%) contrast(1.1) brightness(0.95);
+  max-width: 100%;
+}
+
+.kindling-content figure img {
+  margin: 0 auto;
+}
+
+.kindling-content figcaption {
+  text-align: center;
+  font-size: 0.85em;
+  color: #888;
+  margin-top: 0.5em;
 }
 
 .kindling-content a {
