@@ -39,6 +39,49 @@ const KindlingReader = (() => {
     };
   }
 
+  function cleanArticleBody(body) {
+    // Remove tiny images (avatars, icons, tracking pixels)
+    body.querySelectorAll("img").forEach((img) => {
+      const w = parseInt(img.getAttribute("width"), 10) || img.naturalWidth || 0;
+      const h = parseInt(img.getAttribute("height"), 10) || img.naturalHeight || 0;
+      // Remove images smaller than 80px in either dimension (avatars, icons)
+      if ((w > 0 && w < 80) || (h > 0 && h < 80)) {
+        img.remove();
+        return;
+      }
+      // Remove images whose src/alt suggest author photos
+      const src = (img.getAttribute("src") || "").toLowerCase();
+      const alt = (img.getAttribute("alt") || "").toLowerCase();
+      if (/avatar|author|headshot|profile|gravatar|byline|mugshot/.test(src + " " + alt)) {
+        img.remove();
+      }
+    });
+
+    // Remove elements that look like author bios, bylines, and metadata blocks
+    const bioSelectors = [
+      '[class*="author"]', '[class*="byline"]', '[class*="bio"]',
+      '[class*="contributor"]', '[class*="writer"]', '[class*="profile"]',
+      '[class*="avatar"]', '[class*="mugshot"]',
+      '[rel="author"]',
+      '[itemprop="author"]',
+    ];
+    body.querySelectorAll(bioSelectors.join(",")).forEach((el) => {
+      // Only remove if it's small (not a major content section)
+      // and doesn't contain substantial article text
+      const text = el.textContent.trim();
+      if (text.length < 300) {
+        el.remove();
+      }
+    });
+
+    // Remove empty paragraphs and divs left behind
+    body.querySelectorAll("p, div").forEach((el) => {
+      if (!el.textContent.trim() && !el.querySelector("img, video, iframe")) {
+        el.remove();
+      }
+    });
+  }
+
   function buildReaderDOM(article) {
     // Create Shadow DOM host
     shadowHost = document.createElement("div");
@@ -91,6 +134,7 @@ const KindlingReader = (() => {
       const articleBody = document.createElement("div");
       articleBody.className = "kindling-article-body";
       articleBody.innerHTML = article.content;
+      cleanArticleBody(articleBody);
       contentEl.appendChild(articleBody);
     } else {
       const errorDiv = document.createElement("div");
