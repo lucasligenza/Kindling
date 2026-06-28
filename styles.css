@@ -1,0 +1,422 @@
+/* styles.css — Kindling e-ink reader styles */
+
+/* ============================================
+   CSS Custom Properties (settings-driven)
+   ============================================ */
+
+:host {
+  --kindling-font-size: 18px;
+  --kindling-content-max-width: 680px;
+  --kindling-bg: #F5F1E8;
+  --kindling-text: #2A2A2A;
+  --kindling-ui-border: #D4CCBB;
+  --kindling-highlight: rgba(255, 200, 50, 0.25);
+  --kindling-footer-height: 32px;
+}
+
+/* Font size steps */
+:host(.font-small)       { --kindling-font-size: 14px; }
+:host(.font-medium)      { --kindling-font-size: 16px; }
+:host(.font-default)     { --kindling-font-size: 18px; }
+:host(.font-large)       { --kindling-font-size: 22px; }
+:host(.font-extra-large) { --kindling-font-size: 26px; }
+
+/* Margin width steps */
+:host(.margin-narrow)  { --kindling-content-max-width: 800px; }
+:host(.margin-default) { --kindling-content-max-width: 680px; }
+:host(.margin-wide)    { --kindling-content-max-width: 520px; }
+
+/* ============================================
+   E-Ink Container
+   ============================================ */
+
+.kindling-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--kindling-bg);
+  color: var(--kindling-text);
+  font-family: "Bookerly", Georgia, "Times New Roman", serif;
+  font-size: var(--kindling-font-size);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2147483647;
+  filter: contrast(1.03) brightness(0.98);
+  box-sizing: border-box;
+}
+
+/* Paper grain noise overlay */
+.kindling-container::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Hide scrollbar */
+.kindling-container::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+/* ============================================
+   Content Area
+   ============================================ */
+
+.kindling-content {
+  position: relative;
+  z-index: 2;
+  max-width: var(--kindling-content-max-width);
+  margin: 0 auto;
+  padding: 60px 24px calc(var(--kindling-footer-height) + 40px) 24px;
+}
+
+/* Device edge shadow */
+.kindling-content::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.06);
+  z-index: 0;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+.kindling-content h1 {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.1);
+}
+
+.kindling-byline {
+  font-size: 0.85em;
+  color: #666;
+  margin: 0 0 40px 0;
+  font-style: italic;
+}
+
+.kindling-content p {
+  margin: 0 0 1.2em 0;
+  text-shadow: 0 0 0.5px rgba(0, 0, 0, 0.1);
+  text-align: justify;
+}
+
+.kindling-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5em auto;
+  filter: grayscale(100%) contrast(1.1) brightness(0.95);
+}
+
+.kindling-content a {
+  color: var(--kindling-text);
+  text-decoration: underline;
+  text-decoration-color: var(--kindling-ui-border);
+}
+
+.kindling-content blockquote {
+  margin: 1.2em 0;
+  padding: 0 0 0 1.2em;
+  border-left: 2px solid var(--kindling-ui-border);
+  font-style: italic;
+}
+
+.kindling-content ul,
+.kindling-content ol {
+  margin: 0 0 1.2em 0;
+  padding-left: 1.5em;
+}
+
+.kindling-content li {
+  margin-bottom: 0.4em;
+}
+
+.kindling-content pre,
+.kindling-content code {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 2px;
+}
+
+.kindling-content pre {
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1.2em 0;
+}
+
+.kindling-content code {
+  padding: 0.1em 0.3em;
+}
+
+.kindling-content pre code {
+  padding: 0;
+  background: none;
+}
+
+/* ============================================
+   Top Bar (settings gear + highlights icon)
+   ============================================ */
+
+.kindling-topbar {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.kindling-topbar button {
+  background: none;
+  border: 1px solid var(--kindling-ui-border);
+  color: var(--kindling-text);
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.kindling-topbar button:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   Settings Panel
+   ============================================ */
+
+.kindling-settings {
+  display: none;
+  position: fixed;
+  top: 52px;
+  right: 16px;
+  background: var(--kindling-bg);
+  border: 1px solid var(--kindling-ui-border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  z-index: 20;
+  width: 220px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  font-family: "Bookerly", Georgia, serif;
+  font-size: 14px;
+  color: var(--kindling-text);
+}
+
+.kindling-settings.visible {
+  display: block;
+}
+
+.kindling-settings-group {
+  margin-bottom: 16px;
+}
+
+.kindling-settings-group:last-child {
+  margin-bottom: 0;
+}
+
+.kindling-settings-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.kindling-settings-row {
+  display: flex;
+  gap: 6px;
+}
+
+.kindling-settings-row button {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--kindling-ui-border);
+  color: var(--kindling-text);
+  padding: 6px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: "Bookerly", Georgia, serif;
+  font-size: 12px;
+}
+
+.kindling-settings-row button.active {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: var(--kindling-text);
+}
+
+/* ============================================
+   Footer Bar (progress, reading time, %)
+   ============================================ */
+
+.kindling-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--kindling-footer-height);
+  background: var(--kindling-bg);
+  border-top: 1px solid var(--kindling-ui-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 11px;
+  color: #999;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+.kindling-progress-bar {
+  position: fixed;
+  bottom: var(--kindling-footer-height);
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  z-index: 10;
+}
+
+.kindling-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--kindling-ui-border);
+  transition: width 0.15s ease-out;
+}
+
+/* ============================================
+   Highlight Styles
+   ============================================ */
+
+.kindling-highlight {
+  background: var(--kindling-highlight);
+  border-radius: 1px;
+}
+
+/* Highlight tooltip (appears on text selection) */
+.kindling-highlight-tooltip {
+  display: none;
+  position: absolute;
+  background: var(--kindling-bg);
+  border: 1px solid var(--kindling-ui-border);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--kindling-text);
+  cursor: pointer;
+  z-index: 30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Bookerly", Georgia, serif;
+}
+
+.kindling-highlight-tooltip.visible {
+  display: block;
+}
+
+/* ============================================
+   Highlights Panel
+   ============================================ */
+
+.kindling-highlights-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--kindling-bg);
+  border-left: 1px solid var(--kindling-ui-border);
+  z-index: 25;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: "Bookerly", Georgia, serif;
+}
+
+.kindling-highlights-panel.visible {
+  display: block;
+}
+
+.kindling-highlights-panel h2 {
+  font-size: 16px;
+  margin: 0 0 16px 0;
+  color: var(--kindling-text);
+}
+
+.kindling-highlight-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kindling-ui-border);
+  position: relative;
+}
+
+.kindling-highlight-entry p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  padding-right: 24px;
+  color: var(--kindling-text);
+  font-style: italic;
+}
+
+.kindling-highlight-entry .kindling-highlight-delete {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.kindling-highlight-entry .kindling-highlight-delete:hover {
+  color: var(--kindling-text);
+}
+
+.kindling-highlight-time {
+  font-size: 10px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+/* ============================================
+   Error State
+   ============================================ */
+
+.kindling-error {
+  text-align: center;
+  padding: 120px 40px;
+  color: #999;
+  font-style: italic;
+}
+
+.kindling-error p {
+  text-align: center;
+}
