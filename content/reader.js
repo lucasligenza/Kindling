@@ -40,19 +40,20 @@ const KindlingReader = (() => {
   }
 
   function cleanArticleBody(body) {
-    // Remove tiny images (avatars, icons, tracking pixels)
+    // Remove images that look like author photos/avatars (by src, alt, or class)
     body.querySelectorAll("img").forEach((img) => {
-      const w = parseInt(img.getAttribute("width"), 10) || img.naturalWidth || 0;
-      const h = parseInt(img.getAttribute("height"), 10) || img.naturalHeight || 0;
-      // Remove images smaller than 80px in either dimension (avatars, icons)
-      if ((w > 0 && w < 80) || (h > 0 && h < 80)) {
+      const src = (img.getAttribute("src") || "").toLowerCase();
+      const alt = (img.getAttribute("alt") || "").toLowerCase();
+      const cls = (img.getAttribute("class") || "").toLowerCase();
+      const hint = src + " " + alt + " " + cls;
+      if (/avatar|author|headshot|gravatar|byline|mugshot/.test(hint)) {
         img.remove();
         return;
       }
-      // Remove images whose src/alt suggest author photos
-      const src = (img.getAttribute("src") || "").toLowerCase();
-      const alt = (img.getAttribute("alt") || "").toLowerCase();
-      if (/avatar|author|headshot|profile|gravatar|byline|mugshot/.test(src + " " + alt)) {
+      // Remove tracking pixels (1x1 or 0x0)
+      const w = parseInt(img.getAttribute("width"), 10) || 0;
+      const h = parseInt(img.getAttribute("height"), 10) || 0;
+      if ((w > 0 && w <= 2) || (h > 0 && h <= 2)) {
         img.remove();
       }
     });
