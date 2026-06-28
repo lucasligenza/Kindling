@@ -44,16 +44,28 @@ const KindlingHighlights = (() => {
     const selector = buildSelector(parentEl, articleBody);
     if (!selector) return null;
 
-    const fullText = parentEl.textContent;
+    // Compute character offset by walking text nodes from parentEl start
     const selectedText = range.toString();
-    const startOffset = fullText.indexOf(selectedText);
+    const startOffset = getTextOffsetInElement(parentEl, range.startContainer, range.startOffset);
 
     return {
       selector: selector,
-      startOffset: startOffset >= 0 ? startOffset : 0,
-      endOffset:
-        (startOffset >= 0 ? startOffset : 0) + selectedText.length,
+      startOffset: startOffset,
+      endOffset: startOffset + selectedText.length,
     };
+  }
+
+  function getTextOffsetInElement(element, targetNode, targetOffset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    let offset = 0;
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node === targetNode) {
+        return offset + targetOffset;
+      }
+      offset += node.textContent.length;
+    }
+    return offset;
   }
 
   function buildSelector(element, root) {
@@ -138,9 +150,7 @@ const KindlingHighlights = (() => {
   function createHighlight() {
     if (!shadowRoot) return;
 
-    const selection = shadowRoot.getSelection
-      ? shadowRoot.getSelection()
-      : document.getSelection();
+    const selection = document.getSelection();
     if (!selection || selection.isCollapsed) return;
 
     const range = selection.getRangeAt(0);
@@ -221,9 +231,7 @@ const KindlingHighlights = (() => {
   }
 
   function handleSelectionChange() {
-    const selection = shadowRoot.getSelection
-      ? shadowRoot.getSelection()
-      : document.getSelection();
+    const selection = document.getSelection();
 
     if (!selection || selection.isCollapsed) {
       hideTooltip();
